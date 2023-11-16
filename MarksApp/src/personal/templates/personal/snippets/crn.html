@@ -1,0 +1,31 @@
+<!-- <style>
+    #textInput {
+        text-align: center;
+        width: 100px;
+    }
+</style>
+
+<body>
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="col text-center">
+            <h2 style="font-size: 18px;">Enter CRN:</h2>
+            <input type="text" id="textInput" oninput="validateInput()">
+            <p id="output"></p>
+        </div>
+    </div>
+
+    <script>
+        function validateInput() {
+            var inputElement = document.getElementById("textInput");
+            var userInput = inputElement.value.replace(/\D/g, '');
+            userInput = userInput.substring(0, 5);
+            inputElement.value = userInput;
+
+            if (userInput.length <= 5) {
+                document.getElementById("output").textContent = "CRN: " + userInput;
+            } else {
+                document.getElementById("output").textContent = "Input exceeds 5 digits.";
+            }
+        }
+    </script>
+</body> -->
