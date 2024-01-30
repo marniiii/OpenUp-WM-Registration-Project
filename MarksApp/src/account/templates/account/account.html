@@ -46,19 +46,30 @@
     <div class="text-center">
         <img class="h3 mb-4" src="https://campus757.com/wp-content/uploads/2022/02/wm_720_480.jpg" alt="" width="150" height="100">
     </div>
-    <!-- Put the class name in the place of XX when migrate over code -->
-    <h1 class="h3 mb-3 font-weight-normal">You are currently watching XX</h1>
 
-    <!-- <input type="text" name="subject" id="inputSubject" class="form-control" placeholder="Subject" required autofocus 
-    value={{account_form.initial.subject}}> -->
+    {% if jsonData %}
+    <h3>You're Currently Watching..</h3>
+    <ul>
+        {% for entry in jsonData %}
+            {% if entry.CRN_ID == CRN %}
+                    <strong>Course Title:</strong> {{ entry.TITLE }}<br>
+                    <strong>Instructor:</strong> {{ entry.INSTRUCTOR }}<br>
+                    <strong>Seats Available:</strong> {{ entry.SEATS_AVAIL }}<br>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% else %}
+    <h1 class="h3 mb-3 font-weight-normal">No class information available.</h1>
+{% endif %}
 
+
+    <!--Subject Dropdown-->
     {% include 'personal/snippets/subject.html' %}
 
-    <!-- <input type="text" name="term" id="inputTerm" class="form-control" placeholder="Term" required
-    value={{account_form.initial.term}}> -->
-
+    <!--Term Dropdown-->
     {% include 'personal/snippets/term.html' %}
 
+    <!--CRN Dropdown-->
     <input type="text" name="crn" id="inputCRN" class="form-control" placeholder="CRN" required
     value="{{ account_form.initial.crn }}" title="Please enter a 5-digit number" minlength="5" maxlength="5">
 
@@ -78,12 +89,41 @@
     {% endif %}
 
     {% if success_msg %}
-        <p style="color: green; text-align: center;">{{success_msg}}</p>
+    <p style="color: green; text-align: center;">{{ success_msg }}</p>
+    {% elif failure_msg %}
+        <p style="color: red; text-align: center;">{{ failure_msg }}</p>
     {% endif %}
     
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Save changes</button>
+
+    <button id="save-changes-btn" class="btn btn-lg btn-primary btn-block" type="submit">Save changes</button>
 
 </form>
+
+
+<script defer>
+    // Check if the current URL matches the desired page
+    var isDesiredPage = window.location.href.includes('account/');
+
+    if (isDesiredPage) {
+        // Check if the script has been executed during this session
+        var scriptExecuted = sessionStorage.getItem('scriptExecuted');
+
+        if (!scriptExecuted) {
+            // Trigger the click event of the button
+            document.getElementById('save-changes-btn').click();
+
+            // Set a flag in sessionStorage to indicate that the script has been executed
+            sessionStorage.setItem('scriptExecuted', 'true');
+        }
+    } else {
+        if (!isDesiredPage) {
+        // Clear the flag from sessionStorage when navigating away from the desired page
+        sessionStorage.removeItem('scriptExecuted');
+        }
+    }
+</script>
+
+
 
 
 {% endblock content %}

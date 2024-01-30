@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import login, authenticate, logout
 from account.forms import RegistrationForm, AccountAuthenticationForm, AccountUpdateForm
+from personal import APIToken
 
 def registration_view(request):
     context = {}
@@ -66,27 +67,89 @@ def account_view(request):
     
     context = {}
 
+
     if request.POST:
         form = AccountUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
+            subject_from_post = request.POST['subject']
+            term_from_post = request.POST['term']
+            crn_from_post = request.POST['crn']
+
             form.initial = {
-                    "subject": request.POST['subject'],
-                    "term": request.POST['term'],
-                    "crn": request.POST['crn'],
+                "subject": subject_from_post,
+                "term": term_from_post,
+                "crn": crn_from_post,
             }
-            form.save()
-            context['success_msg'] = "Changes Saved"
+
+            if term_from_post == "Summer":
+                term_from_post = 202330
+            elif term_from_post == "Fall":
+                term_from_post = 202410
+            elif term_from_post == "Spring":
+                term_from_post = 202420
+
+            APIToken.url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
+            APIToken.set_headers()
+
+            #grab the jsonData
+            jsonData = APIToken.get_jsonData()
+            #use this pattern to get rid of weird symbols in seats avai
+            pattern = r'-?\d+(?=\*)?'
+            for entry in jsonData:
+                if entry['CRN_ID'] == crn_from_post:
+                    form.save()
+                    context['success_msg'] = "Found your class. On your watchlist!"
+                    break
+                else:
+                    #this msg is for when the jsonData loads, but the class can't be found
+                    context['failure_msg'] = "Class with that subject and term couldn't be found :( Please double check and try again!"
+            #this msg is for when the jsonData DOESN'T loads and the class can't be found
+            context['failure_msg'] = "Class with that subject and term couldn't be found :( Please double check and try again!"
     else:
-        form = AccountUpdateForm(
-            initial = {
-                "subject": request.user.subject,
-                "term": request.user.term,
-                "crn": request.user.crn,
-            }
-        )
+        form = AccountUpdateForm(instance=request.user)
+        subject_from_post = request.user.subject
+        term_from_post = request.user.term
+        crn_from_post = request.user.crn
+
+        form.initial = {
+            "subject": subject_from_post,
+            "term": term_from_post,
+            "crn": crn_from_post,
+    }
+
+        if term_from_post == "Summer":
+            term_from_post = 202330
+        elif term_from_post == "Fall":
+            term_from_post = 202410
+        elif term_from_post == "Spring":
+            term_from_post = 202420
+        
+
+        APIToken.url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
+        APIToken.set_headers()
+
+        #grab the jsonData
+        jsonData = APIToken.get_jsonData()
+        #use this pattern to get rid of weird symbols in seats avai
+        pattern = r'-?\d+(?=\*)?'
+
+        for entry in jsonData:
+            if entry['CRN_ID'] == crn_from_post:
+                form.save()
+                context['success_msg'] = "Found your class. On your watchlist!"
+                break
+            else:
+                #this msg is for when the jsonData loads, but the class can't be found
+                context['failure_msg'] = "ENTERED ELSE"
+                break
+        #this msg is for when the jsonData DOESN'T loads and the class can't be found
+        context['failure_msg'] = "Please click 'Save Changes' to check the status of your class."
+
     context.update({
         'account_form': form,
         'subjects': subjects,
+        'jsonData': jsonData,
+        'CRN': crn_from_post,
     })
     return render(request, 'account/account.html', context)
 
