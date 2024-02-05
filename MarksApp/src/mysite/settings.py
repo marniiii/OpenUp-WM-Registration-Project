@@ -25,6 +25,13 @@ SECRET_KEY = 'django-insecure-&wp1au()$5(o9njq%v&_d&a5x44s6i2+hb0rupw1n^yne_qzxa
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp-mail.outlook.com'
+EMAIL_HOST_USER = "mamarni@email.wm.edu"
+EMAIL_HOST_PASSWORD = "rksbddemitothcpv"
+
 ALLOWED_HOSTS = []
 
 
@@ -70,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'account.context_processors.cart',
             ],
         },
     },

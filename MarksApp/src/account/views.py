@@ -1,8 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import login, authenticate, logout
 from account.forms import RegistrationForm, AccountAuthenticationForm, AccountUpdateForm
 from personal import APIToken
+from .cart import Cart
+
+
+#email stuff
+from django.core.mail import send_mail
 
 def registration_view(request):
     context = {}
@@ -59,6 +64,7 @@ def account_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
+    # dynamically call the api to be able to check for the subjects and terms, etc.
     subjects = ["AFST", "AMST", "ANTH", "APSC", "ARAB", "ART", "ARTH", "AMES", "APIA", "BIOL", "BUAD", "CHEM", "CHIN", "CLCV",
                 "COLL", "CAMS", "CSCI", "CONS", "CRWR", "CRIN", "DANC", "DATA", "ECON", "EPPL", "EDUC", "ELEM", "ENGL", "ENSP",
                 "EURS", "FMST", "FREN", "GSWS", "GIS", "GEOL", "GRMN", "GOVT", "GRAD", "GREK", "HBRW", "HISP", "HIST", "INTR",
@@ -81,6 +87,7 @@ def account_view(request):
                 "crn": crn_from_post,
             }
 
+#           case for when the class no longer exists
             if term_from_post == "Summer":
                 term_from_post = 202330
             elif term_from_post == "Fall":
@@ -98,7 +105,8 @@ def account_view(request):
             for entry in jsonData:
                 if entry['CRN_ID'] == crn_from_post:
                     form.save()
-                    context['success_msg'] = "Found your class. On your watchlist!"
+                    context['success_msg'] = "Found your class! On your watchlist."
+                    #START THREAD HERE
                     break
                 else:
                     #this msg is for when the jsonData loads, but the class can't be found
@@ -110,12 +118,6 @@ def account_view(request):
         subject_from_post = request.user.subject
         term_from_post = request.user.term
         crn_from_post = request.user.crn
-
-        form.initial = {
-            "subject": subject_from_post,
-            "term": term_from_post,
-            "crn": crn_from_post,
-    }
 
         if term_from_post == "Summer":
             term_from_post = 202330
@@ -149,9 +151,56 @@ def account_view(request):
         'account_form': form,
         'subjects': subjects,
         'jsonData': jsonData,
+        'courseURL': APIToken.url,
         'CRN': crn_from_post,
     })
     return render(request, 'account/account.html', context)
+
+def cart_summary_view(request):
+    #get the cart
+    cart = Cart(request)
+    cart_classes = cart.get_classes
+    return render(request, "account/cart_summary.html", {"cart_classes":cart_classes})
+
+def cart_add_view(request):
+    # get the cart
+    cart = Cart(request)
+    # test for post
+    if request.POST.get('action') == 'post':
+        # get stuff we need 
+        courseURL = str(request.POST.get('courseURL'))
+        CRN = str(request.POST.get('CRN'))
+        TITLE = str(request.POST.get('TITLE'))
+
+        # save to session
+        cart.add(url=courseURL, CRN=CRN, title=TITLE)
+
+        cart_quantity = cart.__len__()
+
+        # return response
+        # response = JsonResponse({'Course URL: ': courseURL, 'CRN: ': CRN})
+        response = JsonResponse({'qty': cart_quantity})
+        return response
+
+        # for entry in jsonData:
+        #     #if found stop searching
+        #     if entry.get('CRN_ID') == crn:
+        #         found_entry = entry
+        #         break
+        # #when found add to cart session
+        # if found_entry:
+        #     cart.add(crn, found_entry)
+        #     return JsonResponse({'message': 'Product added to cart'})
+        # else:
+        #     return JsonResponse({'error': 'Product not found'}, status=404)        
+
+
+def cart_delete_view(request):
+    pass
+
+def cart_update_view(request):
+    pass
+
 
 
 

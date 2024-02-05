@@ -9,36 +9,40 @@
         padding: 15px;
         margin: 0 auto;
     }
+
     .form-signin .form-control {
-        position: relative;
+        position: left;
         box-sizing: border-box;
         height: auto;
         padding: 10px;
         font-size: 16px;
     }
+
     .form-signin .form-control:focus {
         z-index: 2;
     }
-    .form-signin input[type="subject"] {
-        margin-bottom: 10px;
-        border-bottom-right-radius: 0;
-        border-bottom-left-radius: 0;
-    }
-    .form-signin input[type="term"] {
-        margin-bottom: 10px;
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-    }
-    .form-signin input[type="crn"] {
-            margin-bottom: 10px;
-            border-top-left-radius: 0;
-            border-top-right-radius: 0;
+
+    .class-entry-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
     }
 
-    .h3{
-        text-align: center;
+    .class-entry {
+        display: flex;
+        flex-direction: row; /* Align items horizontally */
+        margin-bottom: 10px;
+    }
+
+    .class-info {
+        margin-right: 20px;
+    }
+
+    .class-info:first-child {
+        margin-left: -200px; /* Add a margin-left of 1px to the first child */
     }
 </style>
+
 
 <!--COMMENTED OUT THIS BELOW -->
 <form class="form-signin" method="post">{% csrf_token %}
@@ -46,15 +50,32 @@
     <div class="text-center">
         <img class="h3 mb-4" src="https://campus757.com/wp-content/uploads/2022/02/wm_720_480.jpg" alt="" width="150" height="100">
     </div>
-
     {% if jsonData %}
-    <h3>You're Currently Watching..</h3>
     <ul>
         {% for entry in jsonData %}
+        <!--Big O (N)-->
             {% if entry.CRN_ID == CRN %}
-                    <strong>Course Title:</strong> {{ entry.TITLE }}<br>
-                    <strong>Instructor:</strong> {{ entry.INSTRUCTOR }}<br>
-                    <strong>Seats Available:</strong> {{ entry.SEATS_AVAIL }}<br>
+                    <div class="class-info">
+                        <strong>CRN:</strong> {{ entry.CRN_ID }}<br>
+                    </div>
+                    <div class="class-info">
+                        <strong>Course ID:</strong> {{ entry.COURSE_ID}}<br>
+                    </div>
+                    <div class="class-info">
+                        <strong>Course Title:</strong> {{ entry.TITLE }}<br>
+                    </div>
+                    <div class="class-info">
+                        <strong>Instructor:</strong> {{ entry.INSTRUCTOR }}<br>
+                    </div>
+                    <div class="class-info">
+                        <strong>Class Time:</strong> {{ entry.CRS_DAYTIME }}<br>
+                    </div>
+                    <div class="class-info">
+                        <strong>Seats Available:</strong> {{ entry.SEATS_AVAIL }}<br>
+                    </div>
+                    <button type="button" courseURL="{{ courseURL }}" CRN="{{ CRN }}" TITLE="{{ entry.TITLE }}"
+                    class="btn btn-secondary" id="add-cart">Add to Cart</button>
+                </div>
             {% endif %}
         {% endfor %}
     </ul>
@@ -100,27 +121,39 @@
 </form>
 
 
-<script defer>
-    // Check if the current URL matches the desired page
-    var isDesiredPage = window.location.href.includes('account/');
+<script>
+//Check if the button is pressed
 
-    if (isDesiredPage) {
-        // Check if the script has been executed during this session
-        var scriptExecuted = sessionStorage.getItem('scriptExecuted');
+$(document).on('click', '#add-cart', function(e){
+    var courseURL = $(this).attr('courseURL');
+    var CRN = $(this).attr('CRN');
+    var TITLE = $(this).attr('TITLE');
 
-        if (!scriptExecuted) {
-            // Trigger the click event of the button
-            document.getElementById('save-changes-btn').click();
+    e.preventDefault();
 
-            // Set a flag in sessionStorage to indicate that the script has been executed
-            sessionStorage.setItem('scriptExecuted', 'true');
+    $.ajax({
+        type: 'POST',
+        url: "{% url 'cart_add' %}",
+        data: {
+            courseURL: courseURL,
+            CRN: CRN,
+            TITLE: TITLE,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post'
+        },
+
+        success: function(json){
+            document.getElementById('cart_quantity').textContent = json.qty
+        },
+
+        error: function(xhr, errmsg, err){
+            
+
         }
-    } else {
-        if (!isDesiredPage) {
-        // Clear the flag from sessionStorage when navigating away from the desired page
-        sessionStorage.removeItem('scriptExecuted');
-        }
-    }
+
+    });
+
+})
 </script>
 
 
