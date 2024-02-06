@@ -3,96 +3,105 @@
 {% block content %}
 
 <style type="text/css">
-    .form-signin {
-        width: 100%;
-        max-width: 330px;
-        padding: 15px;
-        margin: 0 auto;
-    }
+.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
+}
 
-    .form-signin .form-control {
-        position: left;
-        box-sizing: border-box;
-        height: auto;
-        padding: 10px;
-        font-size: 16px;
-    }
+.form-signin .form-control {
+    position: left;
+    box-sizing: border-box;
+    height: auto;
+    padding: 10px;
+    font-size: 16px;
+}
 
-    .form-signin .form-control:focus {
-        z-index: 2;
-    }
+.form-signin .form-control:focus {
+    z-index: 2;
+}
 
-    .class-entry-container {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
+.class-details-container {
+    display: flex; /* Use flexbox to horizontally align items */
+    justify-content: center; /* Center items horizontally */
+    flex-wrap: wrap; /* Allow items to wrap to the next line if needed
+}
 
-    .class-entry {
-        display: flex;
-        flex-direction: row; /* Align items horizontally */
-        margin-bottom: 10px;
-    }
+.class-info {
+    flex: 1 1 auto;
+    margin-right: 20px; /* Adjust the spacing between items as needed */
 
-    .class-info {
-        margin-right: 20px;
-    }
+}
 
-    .class-info:first-child {
-        margin-left: -200px; /* Add a margin-left of 1px to the first child */
-    }
+#add-cart {
+    display: block;
+    margin: 10px auto 10px; /* This will center the button horizontally */
+    width: 107%; /* Adjust the width as needed */
+}
+
+
+
+
 </style>
 
 
 <!--COMMENTED OUT THIS BELOW -->
 <form class="form-signin" method="post">{% csrf_token %}
-        
     <div class="text-center">
         <img class="h3 mb-4" src="https://campus757.com/wp-content/uploads/2022/02/wm_720_480.jpg" alt="" width="150" height="100">
     </div>
     {% if jsonData %}
-    <ul>
-        {% for entry in jsonData %}
-        <!--Big O (N)-->
-            {% if entry.CRN_ID == CRN %}
-                    <div class="class-info">
-                        <strong>CRN:</strong> {{ entry.CRN_ID }}<br>
-                    </div>
-                    <div class="class-info">
-                        <strong>Course ID:</strong> {{ entry.COURSE_ID}}<br>
-                    </div>
-                    <div class="class-info">
-                        <strong>Course Title:</strong> {{ entry.TITLE }}<br>
-                    </div>
-                    <div class="class-info">
-                        <strong>Instructor:</strong> {{ entry.INSTRUCTOR }}<br>
-                    </div>
-                    <div class="class-info">
-                        <strong>Class Time:</strong> {{ entry.CRS_DAYTIME }}<br>
-                    </div>
-                    <div class="class-info">
-                        <strong>Seats Available:</strong> {{ entry.SEATS_AVAIL }}<br>
-                    </div>
-                    <button type="button" courseURL="{{ courseURL }}" CRN="{{ CRN }}" TITLE="{{ entry.TITLE }}"
-                    class="btn btn-secondary" id="add-cart">Add to Cart</button>
-                </div>
-            {% endif %}
-        {% endfor %}
-    </ul>
+    {% for entry in jsonData %}
+        <!-- Big O (N) -->
+        {% if entry.CRN_ID == CRN %}
+
+            <div class="class-details-container">
+                <strong>CRN: </strong> {{ entry.CRN_ID }}<br>
+            </div>
+
+            <div class="class-details-container">
+                <strong>Course ID: </strong> {{ entry.COURSE_ID }}<br>
+            </div>
+
+            <div class="class-details-container">
+                <strong>Course Title: </strong> {{ entry.TITLE }}<br>
+            </div>
+
+            <div class="class-details-container">
+                <strong>Instructor: </strong> {{ entry.INSTRUCTOR }}<br>
+            </div>
+
+            <div class="class-details-container">
+                <strong>Class Time: </strong> {{ entry.CRS_DAYTIME }}<br>
+            </div>
+
+            <div class="class-details-container">
+                <strong>Seats Available: </strong> {{ entry.SEATS_AVAIL }}<br>
+            </div>
+
+            <div class="class-details-container">
+                <button type="button" courseURL="{{ courseURL }}" CRN="{{ CRN }}" TITLE="{{ entry.TITLE }}"
+                class="btn btn-lg btn-success btn-block" id="add-cart">Add {{ CRN }} to Cart</button>
+            </div>
+            <br/>
+
+        {% endif %}
+    {% endfor %}
 {% else %}
-    <h1 class="h3 mb-3 font-weight-normal">No class information available.</h1>
+    <h1 class="h3 mb-3 font-weight-normal">Please select a Subject, Term, and CRN you'd like to watch</h1>
 {% endif %}
 
+<!-- Subject Dropdown -->
+{% include 'personal/snippets/subject.html' %}
 
-    <!--Subject Dropdown-->
-    {% include 'personal/snippets/subject.html' %}
+<!-- Term Dropdown -->
+{% include 'personal/snippets/term.html' %}
 
-    <!--Term Dropdown-->
-    {% include 'personal/snippets/term.html' %}
+<!-- CRN Dropdown -->
+<input type="text" name="crn" id="inputCRN" class="form-control" placeholder="CRN" required
+       value="{{ account_form.initial.crn }}" title="Please enter a 5-digit number" minlength="5" maxlength="5">
 
-    <!--CRN Dropdown-->
-    <input type="text" name="crn" id="inputCRN" class="form-control" placeholder="CRN" required
-    value="{{ account_form.initial.crn }}" title="Please enter a 5-digit number" minlength="5" maxlength="5">
 
 
     {% for field in account_form %}
@@ -116,7 +125,7 @@
     {% endif %}
     
 
-    <button id="save-changes-btn" class="btn btn-lg btn-primary btn-block" type="submit">Save changes</button>
+    <button id="save-changes-btn" class="btn btn-lg btn-primary btn-block" type="submit">Search for Class</button>
 
 </form>
 

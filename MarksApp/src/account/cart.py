@@ -15,27 +15,40 @@ class Cart():
 
     def add(self, url, CRN, title):
     # Check if the CRN is already in the cart
-        if CRN in self.cart:
-            # If CRN is already in the cart, check if the URLs are different
-            if self.cart[CRN]['URL'] != str(url):
-                # URLs are different, handle it accordingly
-                pass
-        else:
-            # If CRN is not in the cart or if it's in the cart with a different URL, add the item
+        # Check if the CRN is already in the cart
+        if CRN not in self.cart:
+            # If CRN is not in the cart, add the item
+            self.cart[CRN] = {'URL': str(url), 'CRN': str(CRN), 'TITLE': str(title)}
+        elif self.cart[CRN]['URL'] != str(url):
+            # If the URL is in the cart with a different CRN, add the item
             self.cart[CRN] = {'URL': str(url), 'CRN': str(CRN), 'TITLE': str(title)}
 
         self.session.modified = True
+
+    def delete(self, CRN_to_delete):
+        # Create a list to store the keys to delete
+        keys_to_delete = []
+
+        ## IF DELETE STOP TO WORK CHANGE TO int(CRN_to_delete)
+        ## CRN KEEPS CHANGING FROM STR TO INT ON DIFFERENT RUNS OF THE CODE 
+
+        CRN_to_delete = str(CRN_to_delete)
+        print(CRN_to_delete)
+        # Iterate over the dictionary items
+        for CRN, item_info in self.cart.items():
+            if item_info['CRN'] == CRN_to_delete:
+                keys_to_delete.append(CRN)
+        # Delete the keys outside the loop
+        for CRN in keys_to_delete:
+            del self.cart[CRN]
+        self.session.modified = True
+
 
     def __len__(self):
         return len(self.cart)
     
     def get_classes(self):
-        class_info = self.cart.values()  # Get a list of all items in the cart
-
-    # Now 'class_info' is a list of dictionaries containing URL, CRN, and TITLE
-        for class_item in class_info:
-            crn = class_item['CRN']
-            title = class_item['TITLE']
-            
-            # Do something with the CRN and title (e.g., print or store in a list)
-            return crn, title
+        cart_items = []
+        for CRN, item_info in self.cart.items():
+            cart_items.append({'URL': item_info['URL'], 'CRN': CRN, 'TITLE': item_info['TITLE']})
+        return cart_items

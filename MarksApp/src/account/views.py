@@ -105,7 +105,7 @@ def account_view(request):
             for entry in jsonData:
                 if entry['CRN_ID'] == crn_from_post:
                     form.save()
-                    context['success_msg'] = "Found your class! On your watchlist."
+                    context['success_msg'] = "Found your class! If correct, click 'Add to Cart' or search for another class!"
                     #START THREAD HERE
                     break
                 else:
@@ -145,7 +145,7 @@ def account_view(request):
                 context['failure_msg'] = "ENTERED ELSE"
                 break
         #this msg is for when the jsonData DOESN'T loads and the class can't be found
-        context['failure_msg'] = "Please click 'Save Changes' to check the status of your class."
+        context['failure_msg'] = "Please select a Subject, Term, and CRN you'd like to watch"
 
     context.update({
         'account_form': form,
@@ -159,7 +159,7 @@ def account_view(request):
 def cart_summary_view(request):
     #get the cart
     cart = Cart(request)
-    cart_classes = cart.get_classes
+    cart_classes = cart.get_classes()
     return render(request, "account/cart_summary.html", {"cart_classes":cart_classes})
 
 def cart_add_view(request):
@@ -180,23 +180,20 @@ def cart_add_view(request):
         # return response
         # response = JsonResponse({'Course URL: ': courseURL, 'CRN: ': CRN})
         response = JsonResponse({'qty': cart_quantity})
-        return response
-
-        # for entry in jsonData:
-        #     #if found stop searching
-        #     if entry.get('CRN_ID') == crn:
-        #         found_entry = entry
-        #         break
-        # #when found add to cart session
-        # if found_entry:
-        #     cart.add(crn, found_entry)
-        #     return JsonResponse({'message': 'Product added to cart'})
-        # else:
-        #     return JsonResponse({'error': 'Product not found'}, status=404)        
+        return response   
 
 
 def cart_delete_view(request):
-    pass
+    cart = Cart(request)
+    # test for post
+    if request.POST.get('action') == 'post':
+        # get stuff we need (only need )
+        CRN = str(request.POST.get('CRN'))
+        #Call delete
+        cart.delete(CRN)
+        response = JsonResponse({'Class CRN': CRN})
+        return response   
+
 
 def cart_update_view(request):
     pass

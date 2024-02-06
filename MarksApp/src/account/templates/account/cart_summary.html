@@ -37,13 +37,20 @@
 
 {% if request.user.is_authenticated %}
     <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-        <h1 class="display-4">OpenUp App</h1>
-        <p class="lead">Shopping Cart!!!</p>
+        <h1 class="display-4">Your Shopping Cart</h1>
     </div>
     <div class="container">
-        {% for product in cart_classes %}
-            {{product}}<br/>
-        {% endfor %}
+        {% if cart_classes %}
+            {% for product in cart_classes %}
+                <strong>CRN:</strong> {{ product.CRN }}<br/>
+                <strong>Title:</strong> {{ product.TITLE }}<br/>
+                <button type="button" data-index="{{ product.CRN }}" class="btn btn-danger delete-product">Remove</button>
+
+                <br/><br/>
+            {% endfor %}
+        {% else %}
+            <p>Nothing in your cart</p>
+        {% endif %}
     </div>
 
 
@@ -53,6 +60,36 @@
         <p class="lead">login to use</p>
     </div>
 {% endif %}
+
+
+<script>
+    //Check if the button is pressed
+    
+    $(document).on('click', '.delete-product', function(e){
+        e.preventDefault();
+    
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'cart_delete' %}",
+            data: {
+                CRN: $(this).data('index'),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                action: 'post'
+            },
+    
+            success: function(json){
+                location.reload();
+            },
+    
+            error: function(xhr, errmsg, err){
+                
+    
+            }
+    
+        });
+    
+    })
+    </script>
 
 
 
