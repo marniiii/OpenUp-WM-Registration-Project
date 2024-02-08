@@ -25,36 +25,34 @@
 .class-details-container {
     display: flex; /* Use flexbox to horizontally align items */
     justify-content: center; /* Center items horizontally */
-    flex-wrap: wrap; /* Allow items to wrap to the next line if needed
+    flex-wrap: wrap; /* Allow items to wrap to the next line if needed */
 }
 
-.class-info {
-    flex: 1 1 auto;
-    margin-right: 20px; /* Adjust the spacing between items as needed */
-
-}
+h2 {
+    text-align: center;
+    }
 
 #add-cart {
     display: block;
     margin: 10px auto 10px; /* This will center the button horizontally */
     width: 107%; /* Adjust the width as needed */
 }
-
-
-
-
 </style>
 
 
 <!--COMMENTED OUT THIS BELOW -->
 <form class="form-signin" method="post">{% csrf_token %}
+
     <div class="text-center">
         <img class="h3 mb-4" src="https://campus757.com/wp-content/uploads/2022/02/wm_720_480.jpg" alt="" width="150" height="100">
     </div>
+
     {% if jsonData %}
     {% for entry in jsonData %}
         <!-- Big O (N) -->
         {% if entry.CRN_ID == CRN %}
+        
+            <h2>Here's your class!</h2>
 
             <div class="class-details-container">
                 <strong>CRN: </strong> {{ entry.CRN_ID }}<br>
@@ -88,8 +86,6 @@
 
         {% endif %}
     {% endfor %}
-{% else %}
-    <h1 class="h3 mb-3 font-weight-normal">Please select a Subject, Term, and CRN you'd like to watch</h1>
 {% endif %}
 
 <!-- Subject Dropdown -->
@@ -156,8 +152,6 @@ $(document).on('click', '#add-cart', function(e){
         },
 
         error: function(xhr, errmsg, err){
-            
-
         }
 
     });

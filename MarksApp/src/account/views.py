@@ -4,6 +4,7 @@ from django.contrib.auth import login, authenticate, logout
 from account.forms import RegistrationForm, AccountAuthenticationForm, AccountUpdateForm
 from personal import APIToken
 from .cart import Cart
+from mysite.tasks import send_feedback_email_task
 
 
 #email stuff
@@ -86,66 +87,48 @@ def account_view(request):
                 "term": term_from_post,
                 "crn": crn_from_post,
             }
-
-#           case for when the class no longer exists
-            if term_from_post == "Summer":
-                term_from_post = 202330
-            elif term_from_post == "Fall":
-                term_from_post = 202410
-            elif term_from_post == "Spring":
-                term_from_post = 202420
-
-            APIToken.url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
-            APIToken.set_headers()
-
-            #grab the jsonData
-            jsonData = APIToken.get_jsonData()
-            #use this pattern to get rid of weird symbols in seats avai
-            pattern = r'-?\d+(?=\*)?'
-            for entry in jsonData:
-                if entry['CRN_ID'] == crn_from_post:
-                    form.save()
-                    context['success_msg'] = "Found your class! If correct, click 'Add to Cart' or search for another class!"
-                    #START THREAD HERE
-                    break
-                else:
-                    #this msg is for when the jsonData loads, but the class can't be found
-                    context['failure_msg'] = "Class with that subject and term couldn't be found :( Please double check and try again!"
-            #this msg is for when the jsonData DOESN'T loads and the class can't be found
-            context['failure_msg'] = "Class with that subject and term couldn't be found :( Please double check and try again!"
+            failure_msg = "Class with that subject and term couldn't be found :( Please double check and try again!"
     else:
         form = AccountUpdateForm(instance=request.user)
         subject_from_post = request.user.subject
         term_from_post = request.user.term
         crn_from_post = request.user.crn
-
-        if term_from_post == "Summer":
-            term_from_post = 202330
-        elif term_from_post == "Fall":
-            term_from_post = 202410
-        elif term_from_post == "Spring":
-            term_from_post = 202420
+        failure_msg = "Fill in the form above to find your class!"
         
+#   case for when the class no longer exists
+    if term_from_post == "Summer":
+        term_from_post = 202330
+    elif term_from_post == "Fall":
+        term_from_post = 202410
+    elif term_from_post == "Spring":
+        term_from_post = 202420
 
-        APIToken.url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
-        APIToken.set_headers()
+    APIToken.url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
+    APIToken.set_headers()
 
-        #grab the jsonData
-        jsonData = APIToken.get_jsonData()
-        #use this pattern to get rid of weird symbols in seats avai
-        pattern = r'-?\d+(?=\*)?'
+    #grab the jsonData
+    jsonData = APIToken.get_jsonData()
 
-        for entry in jsonData:
-            if entry['CRN_ID'] == crn_from_post:
-                form.save()
-                context['success_msg'] = "Found your class. On your watchlist!"
-                break
+    try:
+        # Check if jsonData is not None and it is not empty
+        if jsonData and len(jsonData) > 0:
+            # Use a regular expression pattern to clean seats available data
+            pattern = r'-?\d+(?=\*)?'
+            for entry in jsonData:
+                if entry['CRN_ID'] == crn_from_post:
+                    form.save()
+                    context['success_msg'] = "Found your class! If correct, click 'Add to Cart' or search for another class!"
+                    break
             else:
-                #this msg is for when the jsonData loads, but the class can't be found
-                context['failure_msg'] = "ENTERED ELSE"
-                break
-        #this msg is for when the jsonData DOESN'T loads and the class can't be found
-        context['failure_msg'] = "Please select a Subject, Term, and CRN you'd like to watch"
+                # This msg is for when the class cannot be found in jsonData
+                context['failure_msg'] = failure_msg
+        else:
+            # Handle case where jsonData is None or empty
+            context['failure_msg'] = failure_msg
+    except Exception as e:
+        # Handle any other exceptions that might occur
+        context['failure_msg'] = "An error occurred while processing your request: {}".format(str(e))
+
 
     context.update({
         'account_form': form,
@@ -193,10 +176,25 @@ def cart_delete_view(request):
         cart.delete(CRN)
         response = JsonResponse({'Class CRN': CRN})
         return response   
+    
 
+def trigger_task_view(request):
+    if request.POST.get('action') == 'post':
+        # Extract any parameters needed for the task from the request
+        email = request.user.email
+        message = "test"
 
-def cart_update_view(request):
-    pass
+        # Trigger the Celery task
+
+        #FOR SOME REASON IT DOESN"T LIKE .DELAY
+        send_feedback_email_task(email, message)
+
+        # Respond with a success message
+        print("Called send_feedback_email")
+        return JsonResponse({'status': 'Task triggered successfully'})
+    else:
+        # Return an error response if the request method is not POST or not AJAX
+        return JsonResponse({'error': 'Invalid request'})
 
 
 

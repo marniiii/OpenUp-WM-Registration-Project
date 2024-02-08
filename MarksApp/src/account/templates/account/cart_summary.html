@@ -48,9 +48,13 @@
 
                 <br/><br/>
             {% endfor %}
+            <div class="container d-flex justify-content-center align-items-center vh-100">
+                <button type="button" class="btn btn-outline-success send-email">Add to Watchlist</button>
+            </div>
         {% else %}
             <p>Nothing in your cart</p>
         {% endif %}
+
     </div>
 
 
@@ -63,6 +67,7 @@
 
 
 <script>
+    // SCRIPT FOR CART DELETE
     //Check if the button is pressed
     
     $(document).on('click', '.delete-product', function(e){
@@ -84,6 +89,38 @@
             error: function(xhr, errmsg, err){
                 
     
+            }
+    
+        });
+    
+    })
+    </script>
+
+<script>
+    // SCRIPT FOR SEND EMAIL
+    //Check if the button is pressed
+
+
+    //change button to same format as delete product button for start watching
+    $(document).on('click', '.send-email', function(e){
+        e.preventDefault();
+    
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'send_email' %}",
+            data: {
+                // CAN SEND THE DATA AS TITLE AND CRN AND USE THAT IN THE MESSAGE
+                //CRN: $(this).data('index'),
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                action: 'post'
+            },
+    
+            success: function(json){
+                location.reload();
+            },
+    
+            error: function(xhr, errmsg, err){
+                
             }
     
         });

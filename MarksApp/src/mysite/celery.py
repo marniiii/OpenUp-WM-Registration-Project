@@ -1,16 +1,14 @@
-# celery.py
-from __future__ import absolute_import, unicode_literals
+# django_celery/celery.py
+
 import os
 from celery import Celery
 
-# set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
+app = Celery("mysite")
 
-# create a Celery instance and configure it using the settings from Django.
-app = Celery('your_project')
-
-# Load task modules from all registered Django app configs.
-app.config_from_object('django.conf:settings', namespace='CELERY')
-
-# Auto-discover tasks in all installed apps
+app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
+
+@app.task(bind=True, ignore_result=True)
+def debug_task(self):
+    print(f'Request: {self.request!r}')
