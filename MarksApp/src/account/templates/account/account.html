@@ -40,13 +40,13 @@ h2 {
 </style>
 
 
-<!--COMMENTED OUT THIS BELOW -->
 <form class="form-signin" method="post">{% csrf_token %}
 
     <div class="text-center">
         <img class="h3 mb-4" src="https://campus757.com/wp-content/uploads/2022/02/wm_720_480.jpg" alt="" width="150" height="100">
     </div>
 
+    <!-- If jsonData passed from views valid, find the class -->
     {% if jsonData %}
     {% for entry in jsonData %}
         <!-- Big O (N) -->
@@ -78,29 +78,35 @@ h2 {
                 <strong>Seats Available: </strong> {{ entry.SEATS_AVAIL }}<br>
             </div>
 
+            <!-- Add to cart button with values needed to find class-->
             <div class="class-details-container">
                 <button type="button" courseURL="{{ courseURL }}" CRN="{{ CRN }}" TITLE="{{ entry.TITLE }}"
                 class="btn btn-lg btn-success btn-block" id="add-cart">Add {{ CRN }} to Cart</button>
             </div>
+
             <br/>
 
         {% endif %}
     {% endfor %}
 {% endif %}
 
+
 <!-- Subject Dropdown -->
 {% include 'personal/snippets/subject.html' %}
 
+
 <!-- Term Dropdown -->
 {% include 'personal/snippets/term.html' %}
+
 
 <!-- CRN Dropdown -->
 <input type="text" name="crn" id="inputCRN" class="form-control" placeholder="CRN" required
        value="{{ account_form.initial.crn }}" title="Please enter a 5-digit number" minlength="5" maxlength="5">
 
 
+    <!-- DONT THINK I NEED THIS ANYMORE -->
 
-    {% for field in account_form %}
+    <!-- {% for field in account_form %}
         <p> 
             {% for error in field.errors %}
                 <p style="color: red"></p>{{ error }}</p> 
@@ -111,31 +117,37 @@ h2 {
         <div style="color: red">
             <p>{{account_form.non_field_errors}}</p>
         </div>
+    {% endif %} -->
 
-    {% endif %}
 
+    <!-- If there's a successful match for jsonData, give success_msg-->
     {% if success_msg %}
     <p style="color: green; text-align: center;">{{ success_msg }}</p>
+
+    <!-- Else, give failure_msg-->
     {% elif failure_msg %}
         <p style="color: red; text-align: center;">{{ failure_msg }}</p>
+
     {% endif %}
     
-
     <button id="save-changes-btn" class="btn btn-lg btn-primary btn-block" type="submit">Search for Class</button>
 
 </form>
 
 
 <script>
-//Check if the button is pressed
 
+//Check if add-cart button is pressed
 $(document).on('click', '#add-cart', function(e){
+
+    //if so grab these variables set in the button
     var courseURL = $(this).attr('courseURL');
     var CRN = $(this).attr('CRN');
     var TITLE = $(this).attr('TITLE');
 
     e.preventDefault();
 
+    // Declare post and send to cart_add_view
     $.ajax({
         type: 'POST',
         url: "{% url 'cart_add' %}",
@@ -158,7 +170,6 @@ $(document).on('click', '#add-cart', function(e){
 
 })
 </script>
-
 
 
 

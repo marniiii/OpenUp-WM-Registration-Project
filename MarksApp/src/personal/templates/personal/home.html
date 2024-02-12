@@ -33,9 +33,105 @@
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+/* Add your custom CSS styles here */
+        /* Example styles */
+.jumbotron {
+    background-color: #f8f9fa;
+    padding: 2rem 1rem;
+    border-radius: 15px;
+}
+.feature-box {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+#instructions {
+  background-color: #f8f9fa;
+  padding: 50px 0;
+}
+
+
+h2 {
+  font-size: 24px;
+  color: #333;
+}
+
+p {
+  font-size: 18px;
+  color: #666;
+}
+
+ol {
+  text-align: left;
+}
+
+li {
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.container2 {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
 </style>
 
-{% if request.user.is_authenticated %}
+<div class="jumbotron text-center">
+  <h1 class="display-4">Welcome to Your Courselist Stalker!</h1>
+  <p class="lead">OpenUp is the much needed alternative to override begging and registration stresses.</p>
+  <p class="lead"> A class you needed filled up too quick? Why not get notified when a seat becomes available?</p>
+</div>
+
+<!-- Features Section -->
+<section class="container">
+  <div class="row">
+
+      <div class="col-md-4">
+          <div class="feature-box text-center" style="background-color: #ffffff; color: #000000;">
+            <h3 style="text-decoration: underline;">Perfect Schedules</h3>
+              <p>Get all the classes that you want to make graduating just a liiittle bit easier</p>
+          </div>
+      </div>
+
+      <div class="col-md-4">
+          <div class="feature-box text-center">
+            <h3 style="text-decoration: underline;">Fast Notifications</h3>
+              <p>Get notified almost instantly when a desired class has an available seat</p>
+          </div>
+      </div>
+
+      <div class="col-md-4">
+          <div class="feature-box text-center">
+            <h3 style="text-decoration: underline;">Less Stress</h3>
+              <p>Know that you still have a chance to get into your much needed classes</p>
+          </div>
+      </div>
+      
+    </div>
+
+</section>
+<section id="instructions">
+  <div class="container2">
+    <h1>Instructions:</h1>
+    <p>To get started, follow these simple steps!</p>
+    <ol>
+      <li>Create an account or log in if you already have one.</li>
+      <li>Click "Class Search" in the top right or click <a href="{% url 'account' %}">here</a></li>
+      <li>Fill in your course information: Subject, Term, and CRN using the dropdowns in "Class Search"</li>
+      <li>Once you find your desired class/es, add it to your cart and/or search for another class</li>
+      <li>Once you have all the classes you wish to watch, navigate to "Cart" and selected "Add to Watchlist"</li>
+      <li>Now sit back and wait. Once any of your classes has a seat avaialable, we'll notify you through the email you registered with!</li>
+    </ol>
+  </div>
+</section>
+
+
+<!-- {% if request.user.is_authenticated %}
     <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
         <h1 class="display-4">OpenUp App</h1>
         <p class="lead">welcome</p>
@@ -47,7 +143,7 @@
         <h1 class="display-4">OpenUp App</h1>
         <p class="lead">login to use</p>
     </div>
-{% endif %}
+{% endif %} -->
 
 
 

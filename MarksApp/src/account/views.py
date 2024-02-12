@@ -1,17 +1,20 @@
-from django.shortcuts import render, redirect, get_object_or_404
+# import all the things needed
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import login, authenticate, logout
 from account.forms import RegistrationForm, AccountAuthenticationForm, AccountUpdateForm
-from personal import APIToken
 from .cart import Cart
+
+#using tasks and celery here to getJsonData
+from mysite import tasks
+
+#using this to send emails
 from mysite.tasks import send_feedback_email_task
 
-
-#email stuff
-from django.core.mail import send_mail
-
+# make a register view
 def registration_view(request):
     context = {}
+    # if info sent to this view is post
     if request.POST:
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -29,6 +32,7 @@ def registration_view(request):
     return render(request, 'account/register.html', context)
 
 
+# send user back to the home screen
 def logout_view(request):
     logout(request)
     return redirect('home')
@@ -65,16 +69,25 @@ def account_view(request):
     if not request.user.is_authenticated:
         return redirect("login")
 
-    # dynamically call the api to be able to check for the subjects and terms, etc.
-    subjects = ["AFST", "AMST", "ANTH", "APSC", "ARAB", "ART", "ARTH", "AMES", "APIA", "BIOL", "BUAD", "CHEM", "CHIN", "CLCV",
-                "COLL", "CAMS", "CSCI", "CONS", "CRWR", "CRIN", "DANC", "DATA", "ECON", "EPPL", "EDUC", "ELEM", "ENGL", "ENSP",
-                "EURS", "FMST", "FREN", "GSWS", "GIS", "GEOL", "GRMN", "GOVT", "GRAD", "GREK", "HBRW", "HISP", "HIST", "INTR",
-                "INRL", "ITAL", "JAPN", "KINE", "LATN", "LAS", "LAW", "LING", "MSCI", "MATH", "MLSC", "MDLL", "MUSC", "NSCI",
-                "PHIL", "PHYS", "PSYC", "PBHL", "PUBP", "RELG", "RUSN", "RPSS", "SOCL", "SPCH", "THEA", "WRIT"]
+    # this only needs to be called every week or so
+    tasks.url = "https://openapi.it.wm.edu/courses/production/v1/subjectlist"
+    tasks.set_headers()
+
+    # use .delay on this command below once i figure out why .delay breaks it
+    subjects = tasks.get_jsonData()
+    subject_list = []
+    for entry in subjects:
+        # Use .get() method to access the 'STVSUBJ_CODE' key with a default value of None
+        subject_code = entry.get('STVSUBJ_CODE')
+        if subject_code is not None:
+            subject_list.append(subject_code)
+
+        subject_list.sort()
+
+        context = {}
+
     
-    context = {}
-
-
+    # if get a post request from account searching for a class
     if request.POST:
         form = AccountUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
@@ -88,33 +101,50 @@ def account_view(request):
                 "crn": crn_from_post,
             }
             failure_msg = "Class with that subject and term couldn't be found :( Please double check and try again!"
+    # if it fails or it's their first time visiting the account page
     else:
         form = AccountUpdateForm(instance=request.user)
+        # use their old saved info and display it
         subject_from_post = request.user.subject
         term_from_post = request.user.term
         crn_from_post = request.user.crn
         failure_msg = "Fill in the form above to find your class!"
         
-#   case for when the class no longer exists
-    if term_from_post == "Summer":
-        term_from_post = 202330
-    elif term_from_post == "Fall":
-        term_from_post = 202410
-    elif term_from_post == "Spring":
-        term_from_post = 202420
+    #  this also only needs to be called like once a week or more rarely
+    #  also make it so that only terms with add drop active are displayed
+    # call api to get the actual active term codes and see if it matches the input
+    tasks.url = "https://openapi.it.wm.edu/courses/production/v1/activeterms"
+    tasks.set_headers()
+    terms = tasks.get_jsonData()
 
-    APIToken.url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
-    APIToken.set_headers()
+    for entry in terms:
+        # if user selects summer, fall, or spring, see if that's something that thte api returns
+        if term_from_post in entry['TERM_DESC']:
+            # if so, set term_from_post = to the numerical value of that term
+            term_from_post = entry['TERM_CODE']
+            break
+        # otherwise just set it to 0 so that the failure msg will pop up
+        else:
+            term_from_post = 0
+            
+    # set the tasks.url to the url used to grab class jsonData
+    tasks.url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
+    # do some stuff
+    tasks.set_headers()
 
-    #grab the jsonData
-    jsonData = APIToken.get_jsonData()
+    #DOESN"T LIKE jsonData = tasks.get_jsonData.delay() or tasks.get_jsonData.delay().get()
+    #tasks.get_jsonData.delay().get()
+    #grab the jsonData using tasks and celery
+    jsonData = tasks.get_jsonData()
 
     try:
         # Check if jsonData is not None and it is not empty
         if jsonData and len(jsonData) > 0:
             # Use a regular expression pattern to clean seats available data
             pattern = r'-?\d+(?=\*)?'
+            # for every entry in that huge jsonData
             for entry in jsonData:
+                # if we find a match regarding CRN
                 if entry['CRN_ID'] == crn_from_post:
                     form.save()
                     context['success_msg'] = "Found your class! If correct, click 'Add to Cart' or search for another class!"
@@ -129,21 +159,24 @@ def account_view(request):
         # Handle any other exceptions that might occur
         context['failure_msg'] = "An error occurred while processing your request: {}".format(str(e))
 
-
+    # then we want to send the form, subjects, jsonData, url, and the crn to account.html so that it can use it or display it
     context.update({
         'account_form': form,
-        'subjects': subjects,
+        'subjects': subject_list,
         'jsonData': jsonData,
-        'courseURL': APIToken.url,
+        'courseURL': tasks.url,
         'CRN': crn_from_post,
     })
+    # this sends that info there
     return render(request, 'account/account.html', context)
+
 
 def cart_summary_view(request):
     #get the cart
     cart = Cart(request)
     cart_classes = cart.get_classes()
     return render(request, "account/cart_summary.html", {"cart_classes":cart_classes})
+
 
 def cart_add_view(request):
     # get the cart
@@ -187,7 +220,7 @@ def trigger_task_view(request):
         # Trigger the Celery task
 
         #FOR SOME REASON IT DOESN"T LIKE .DELAY
-        send_feedback_email_task(email, message)
+        send_feedback_email_task.delay(email, message)
 
         # Respond with a success message
         print("Called send_feedback_email")

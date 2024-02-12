@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
+
 from account.views import (
     cart_summary_view,
     cart_add_view,

@@ -35,29 +35,45 @@
 }
 </style>
 
+
 {% if request.user.is_authenticated %}
-    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-        <h1 class="display-4">Your Shopping Cart</h1>
-    </div>
-    <div class="container">
-        {% if cart_classes %}
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">Your Shopping Cart</h1>
+</div>
+
+<div class="container">
+    <!-- IF there's stuff in the cart -->
+    {% if cart_classes %}
+        <div class="row">
+            <!-- List those classes individually -->
             {% for product in cart_classes %}
-                <strong>CRN:</strong> {{ product.CRN }}<br/>
-                <strong>Title:</strong> {{ product.TITLE }}<br/>
-                <button type="button" data-index="{{ product.CRN }}" class="btn btn-danger delete-product">Remove</button>
-
-                <br/><br/>
+                <div class="col-md-6 mx-auto mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.TITLE }}</h5>
+                            <p class="card-text">CRN: {{ product.CRN }}</p>
+                            <button type="button" data-index="{{ product.CRN }}" class="btn btn-danger delete-product">Remove</button>
+                        </div>
+                    </div>
+                </div>
             {% endfor %}
-            <div class="container d-flex justify-content-center align-items-center vh-100">
-                <button type="button" class="btn btn-outline-success send-email">Add to Watchlist</button>
-            </div>
-        {% else %}
-            <p>Nothing in your cart</p>
-        {% endif %}
+        </div>
 
-    </div>
+        <!-- Button that actually adds to watchlist and sends email -->
+        <div class="text-center mt-4">
+            <button type="button" class="btn btn-outline-success btn-lg btn-animate">Add to Watchlist</button>
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <p class="lead">Your cart is empty</p>
+        </div>
+    {% endif %}
+</div>
 
 
+
+
+<!-- If the user isn't authenticated make em login -->
 {% else %}
     <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
         <h1 class="display-4">OpenUp App</h1>
@@ -68,11 +84,11 @@
 
 <script>
     // SCRIPT FOR CART DELETE
-    //Check if the button is pressed
-    
+    // Check if the delete-product in shopping cart is pressed
     $(document).on('click', '.delete-product', function(e){
         e.preventDefault();
     
+        // send the data stored in that button to cart_delete_view
         $.ajax({
             type: 'POST',
             url: "{% url 'cart_delete' %}",
@@ -82,6 +98,7 @@
                 action: 'post'
             },
     
+            // when this successfully occurs, automatically refresh the page
             success: function(json){
                 location.reload();
             },
@@ -98,13 +115,12 @@
 
 <script>
     // SCRIPT FOR SEND EMAIL
-    //Check if the button is pressed
 
-
-    //change button to same format as delete product button for start watching
+    // Check if the send-email button is pressed
     $(document).on('click', '.send-email', function(e){
         e.preventDefault();
     
+        // send the info in that button to send-email-view
         $.ajax({
             type: 'POST',
             url: "{% url 'send_email' %}",
@@ -115,6 +131,7 @@
                 action: 'post'
             },
     
+            // auto refresh page when that works
             success: function(json){
                 location.reload();
             },

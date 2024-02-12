@@ -1,33 +1,91 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
 <style type="text/css">
-    @media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
-    }
+.masthead {
+  margin-bottom: 2rem;
+}
 
-    .container {
-    max-width: 960px;
-    }
+.masthead-brand {
+  margin-bottom: 0;
+}
 
-    .pricing-header {
-    max-width: 700px;
-    }
+.nav-masthead .nav-link {
+  padding: .25rem 0;
+  font-weight: 700;
+  color: rgba(0, 0, 0, .5);
+  background-color: transparent;
+  border-bottom: .25rem solid transparent;
+}
 
-    .card-deck .card {
-    min-width: 220px;
-    }
+.nav-masthead .nav-link:hover,
+.nav-masthead .nav-link:focus {
+  border-bottom-color: rgba(0, 0, 0, .25);
+}
 
-.border-top { border-top: 1px solid #e5e5e5; }
-.border-bottom { border-bottom: 1px solid #e5e5e5; }
+.nav-masthead .nav-link + .nav-link {
+  margin-left: 1rem;
+}
 
-.box-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05); }
+.nav-masthead .active {
+  color: #000;
+  border-bottom-color: #000;
+}
 
+.header-center {
+    /* Remove flex: 1; */
+    display: flex;
+    align-items: flex-end; /* Align items to the right */
+    justify-content: center;
+    margin-right: -195px; /* Adjust the margin as needed */
+}
+
+
+
+
+@media (min-width: 48em) {
+  .masthead-brand {
+    float: left;
+  }
+  .nav-masthead {
+    float: right;
+  }
+}
 </style>
 
 <!--START HEADER-->
-<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+    {% if request.user.is_authenticated %}
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4><p>Hello, {{request.user.username}}</p></h4>
+          <div class="header-center">
+              <h3 class="text-center mb-0 me-3">OpenUp x</h3>
+              <img src="https://campus757.com/wp-content/uploads/2022/02/wm_720_480.jpg" alt="Logo" class="img-fluid" width="55" height="55">
+          </div>        
+          <nav class="nav nav-masthead">
+            <a class="nav-link" href="{% url 'home' %}">Home</a>
+            <a class="nav-link" href="{% url 'account' %}">Class Search</a>
+            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+            <a class="nav-link"  href="{% url 'cart_summary' %}" class="btn btn-outline-dark"><i class="bi bi-cart-fill me-1"></i>
+              Cart
+              <span class="badge bg-dark text-white ms-1 rounded-pill" id="cart_quantity">{{ cart|length }}</span></a>
+          </nav>
+        </div>
+        
+    {% else %}
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+        <div class="d-flex justify-content-end align-items-center mb-3"> <!-- Change justify-content-between to justify-content-end -->
+            <h3 class="mb-0 me-3" style="margin-right: 435px;">Login to Use!</h3>
+
+            <nav class="nav nav-masthead">
+                <a class="nav-link" href="{% url 'home' %}">Home</a>
+                <a class="nav-link" href="{% url 'login' %}">Login</a>
+                <a class="nav-link" href="{% url 'register' %}">Register</a>
+            </nav>
+        </div>
+    </div>    
+    {% endif %}
+  
+<!-- <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
     {% if request.user.is_authenticated %}
     <h5 class="my-0 mr-md-auto font-weight-normal">
         <p>Hello, {{request.user.username}}</p>
@@ -36,7 +94,7 @@
     <nav class="my-2 my-md-0 mr-md-3">
         {% if request.user.is_authenticated %}
             <a class="p-2 text-dark" href="{% url 'home' %}">Home</a>
-            <a class="p-2 text-dark" href="{% url 'account' %}">Account</a>
+            <a class="p-2 text-dark" href="{% url 'account' %}">Class Search</a>
             <a class="p-2 text-dark" href="{% url 'logout' %}">Logout</a>
             <a href="{% url 'cart_summary' %}" class="btn btn-outline-dark"><i class="bi bi-cart-fill me-1"></i>
             Cart
@@ -47,5 +105,5 @@
             <a class="btn btn-outline-primary" href="{% url 'register' %}">Register</a>
         {% endif %}
     </nav>
-  </div>
+  </div> -->
 <!--END HEADER-->

@@ -35,26 +35,33 @@
     }
 </style>
 
+
 <form class="form-signin" method="post">{% csrf_token %}
 
     <div class="text-center">
         <img class="mb-4" src="https://campus757.com/wp-content/uploads/2022/02/wm_720_480.jpg" alt="" width="150" height="100">
     </div>  
 
+
     <h1 class="h3 mb-3 font-weight-normal">Log In</h1>
 
-    
+    <!-- Email required for login -->
     <input type="email" name="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
     
+    <!-- Password is also required -->
     <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password" required>
 
+    
     {% for field in login_form %}
         <p>
+        <!-- list the errors  -->
         {% for error in field.errors %}
             <p style="color: red;">{{ error }}</p> 
         {% endfor %}
         </p>
     {% endfor %}
+
+    <!-- if other type of error, list that -->
     {% if login_form.non_field_errors %}
         <div style="color:red;">
             <p>{{login_form.non_field_errors}}</p>
@@ -62,8 +69,10 @@
     
     {% endif %}
 
+    <!-- Login button on the bottom of page -->
     <button class="btn btn-lg btn-primary btn-block" type="submit">Log in</button>
         
+    <!-- Lil shoutout -->
     <div class="text-center">
         <p class="mt-5 mb-3 text-muted">&copy; Mark Marni x W&M</p>
     </div>

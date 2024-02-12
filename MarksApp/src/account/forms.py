@@ -1,22 +1,31 @@
+# import some stuff
 from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate
 
+
+# import our actual account model
 from account.models import Account
 
+
+# make the form for registering an account
 class RegistrationForm(UserCreationForm):
+    # reference premade django email form
     email = forms.EmailField(max_length=60, help_text='Required. Add a valid email address.')
 
     class Meta:
         model = Account
+        # requires these fields
         fields = ("email", "username", "password1", "password2")
 
 
+# make the form for logging in
 class AccountAuthenticationForm(forms.ModelForm):
-
+    # grab the password
     password = forms.CharField(label='Password', widget=forms.PasswordInput)
 
+    # rquires these fields for log in
     class Meta:
         model = Account
         fields = ('email', 'password')
@@ -29,15 +38,18 @@ class AccountAuthenticationForm(forms.ModelForm):
                 raise forms.ValidationError("Invalid Login")
             
 
+# make form for updating account. Could delete probably
 class AccountUpdateForm(forms.ModelForm):
-
+    # require these fields for saving which class user wants
     class Meta:
         model = Account
         fields = ('subject', 'term', 'crn')
 
+    # clean the inputted data
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
+
 
         if email:
             account = Account.objects.get(email=email)
