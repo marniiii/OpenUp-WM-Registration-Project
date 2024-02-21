@@ -11,6 +11,9 @@ from mysite import tasks
 #using this to send emails
 from mysite.tasks import send_feedback_email_task
 
+# trying to persist cart after logout
+
+
 # make a register view
 def registration_view(request):
     context = {}
@@ -32,10 +35,12 @@ def registration_view(request):
     return render(request, 'account/register.html', context)
 
 
+
 # send user back to the home screen
 def logout_view(request):
     logout(request)
     return redirect('home')
+
 
 
 def login_view(request):
@@ -64,17 +69,22 @@ def login_view(request):
     return render(request, 'account/login.html', context)
 
 
+
 def account_view(request):
 
     if not request.user.is_authenticated:
         return redirect("login")
+    
+    context = {}
 
     # this only needs to be called every week or so
-    tasks.url = "https://openapi.it.wm.edu/courses/production/v1/subjectlist"
-    tasks.set_headers()
+    # set the subject_url and term_url to visit that site and grab
+    subject_url = "https://openapi.it.wm.edu/courses/production/v1/subjectlist"
+    term_url = "https://openapi.it.wm.edu/courses/production/v1/activeterms"
 
-    # use .delay on this command below once i figure out why .delay breaks it
-    subjects = tasks.get_jsonData()
+    # call the function and set subjects and term = to the celery task response
+    subjects, terms = tasks.get_subject_and_term.delay(subject_url, term_url).get()
+
     subject_list = []
     for entry in subjects:
         # Use .get() method to access the 'STVSUBJ_CODE' key with a default value of None
@@ -82,11 +92,10 @@ def account_view(request):
         if subject_code is not None:
             subject_list.append(subject_code)
 
+        # this is how we get the sorted subjects for the dropdown menu
         subject_list.sort()
 
-        context = {}
 
-    
     # if get a post request from account searching for a class
     if request.POST:
         form = AccountUpdateForm(request.POST, instance=request.user)
@@ -109,16 +118,11 @@ def account_view(request):
         term_from_post = request.user.term
         crn_from_post = request.user.crn
         failure_msg = "Fill in the form above to find your class!"
-        
-    #  this also only needs to be called like once a week or more rarely
-    #  also make it so that only terms with add drop active are displayed
-    # call api to get the actual active term codes and see if it matches the input
-    tasks.url = "https://openapi.it.wm.edu/courses/production/v1/activeterms"
-    tasks.set_headers()
-    terms = tasks.get_jsonData()
 
+
+    #  also make it so that only terms with add drop active are displayed
     for entry in terms:
-        # if user selects summer, fall, or spring, see if that's something that thte api returns
+        # if user selects summer, fall, or spring, see if that's something that the api returns
         if term_from_post in entry['TERM_DESC']:
             # if so, set term_from_post = to the numerical value of that term
             term_from_post = entry['TERM_CODE']
@@ -126,24 +130,22 @@ def account_view(request):
         # otherwise just set it to 0 so that the failure msg will pop up
         else:
             term_from_post = 0
-            
-    # set the tasks.url to the url used to grab class jsonData
-    tasks.url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
-    # do some stuff
-    tasks.set_headers()
 
-    #DOESN"T LIKE jsonData = tasks.get_jsonData.delay() or tasks.get_jsonData.delay().get()
-    #tasks.get_jsonData.delay().get()
+
+    # set the tasks.url to the url used to grab class jsonData
+    classes_url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
+
     #grab the jsonData using tasks and celery
-    jsonData = tasks.get_jsonData()
+    classesJsonData = tasks.get_classes.delay(classes_url).get()
+    
 
     try:
         # Check if jsonData is not None and it is not empty
-        if jsonData and len(jsonData) > 0:
+        if classesJsonData and len(classesJsonData) > 0:
             # Use a regular expression pattern to clean seats available data
             pattern = r'-?\d+(?=\*)?'
             # for every entry in that huge jsonData
-            for entry in jsonData:
+            for entry in classesJsonData:
                 # if we find a match regarding CRN
                 if entry['CRN_ID'] == crn_from_post:
                     form.save()
@@ -163,8 +165,8 @@ def account_view(request):
     context.update({
         'account_form': form,
         'subjects': subject_list,
-        'jsonData': jsonData,
-        'courseURL': tasks.url,
+        'jsonData': classesJsonData,
+        'courseURL': classes_url,
         'CRN': crn_from_post,
     })
     # this sends that info there
@@ -220,7 +222,7 @@ def trigger_task_view(request):
         # Trigger the Celery task
 
         #FOR SOME REASON IT DOESN"T LIKE .DELAY
-        send_feedback_email_task.delay(email, message)
+        send_feedback_email_task(email, message)
 
         # Respond with a success message
         print("Called send_feedback_email")

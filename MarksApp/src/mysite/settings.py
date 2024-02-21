@@ -34,7 +34,6 @@ EMAIL_HOST_PASSWORD = "rksbddemitothcpv"
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [

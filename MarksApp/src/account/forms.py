@@ -38,11 +38,11 @@ class AccountAuthenticationForm(forms.ModelForm):
                 raise forms.ValidationError("Invalid Login")
             
 
-# make form for updating account. Could delete probably
 class AccountUpdateForm(forms.ModelForm):
     # require these fields for saving which class user wants
     class Meta:
         model = Account
+        # this is how the input field is
         fields = ('subject', 'term', 'crn')
 
     # clean the inputted data

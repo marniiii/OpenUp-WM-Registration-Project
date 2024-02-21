@@ -41,6 +41,11 @@ class Account(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
+
+    ##
+    # Only need the URL and CRN for one class   
+
+
     ##Input fields when authenticated
     subject = models.CharField(max_length=5, default='DefaultSubject')
     term = models.CharField(max_length=10, default='DefaultTerm')
@@ -59,3 +64,16 @@ class Account(AbstractBaseUser):
     
     def has_module_perms(self, app_label):
         return True
+    
+class WatchedClass(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    crn = models.IntegerField(default=0)
+    url = models.CharField(max_length=100, default='DefaultTerm')
+    title = models.CharField(max_length=100, default='DefaultTerm')
+
+    #need these two to even make the url
+    subject = models.CharField(max_length=5, default='DefaultSubject')
+    term = models.CharField(max_length=10, default='DefaultTerm')
+
+    def __str__(self):
+        return f"Class for {self.account.email}: {self.crn}"

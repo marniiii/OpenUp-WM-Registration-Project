@@ -39,6 +39,8 @@ h2 {
 }
 </style>
 
+<!-- HAD THIS AS LIKE ACCOUNTUPDATE FORM SOMETHING -->
+<!-- <form class="form-signin" method="post">{% csrf_token %} -->
 
 <form class="form-signin" method="post">{% csrf_token %}
 
@@ -103,21 +105,6 @@ h2 {
 <input type="text" name="crn" id="inputCRN" class="form-control" placeholder="CRN" required
        value="{{ account_form.initial.crn }}" title="Please enter a 5-digit number" minlength="5" maxlength="5">
 
-
-    <!-- DONT THINK I NEED THIS ANYMORE -->
-
-    <!-- {% for field in account_form %}
-        <p> 
-            {% for error in field.errors %}
-                <p style="color: red"></p>{{ error }}</p> 
-            {% endfor %}
-        </p>
-    {% endfor %}
-    {% if account_form.non_field_errors %}
-        <div style="color: red">
-            <p>{{account_form.non_field_errors}}</p>
-        </div>
-    {% endif %} -->
 
 
     <!-- If there's a successful match for jsonData, give success_msg-->

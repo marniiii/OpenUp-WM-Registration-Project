@@ -7,24 +7,26 @@ from celery import shared_task
 # imports for token and API
 import json
 from pip._vendor import requests
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from personal.credentials import token, secret_key
+import concurrent.futures
+
 
 # variables for API
 last_token_generation_time = None
 cred_url = 'https://openapi.it.wm.edu/auth/v1/login'
 access_token = None
 headers = None
-url = ""
+weekly_subject = None
+weekly_term = None
 
 
 
 @shared_task()
-def get_jsonData():
+def get_classes(url):
     global last_token_generation_time
     global access_token
     global headers
-    global url
 
     if not is_token_valid():
         set_headers()
@@ -40,7 +42,55 @@ def get_jsonData():
         jsonData = None
     return jsonData
 
-    
+
+@shared_task()
+def get_subject_and_term(subject_url, term_url):
+    global weekly_subject
+    global weekly_term
+
+    # Check if today is Monday (weekday() returns 0 for Monday or if No data is stored
+    if datetime.today().weekday() == 0 or weekly_subject is None or weekly_term is None:
+        set_headers()
+        try:
+            # Make the requests concurrently using threads to improve efficiency
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                # Submit the requests for subject and term data
+                subj_future = executor.submit(requests.get, subject_url, headers=headers)
+                term_future = executor.submit(requests.get, term_url, headers=headers)
+
+                # Get the results of the requests
+                subj_response = subj_future.result()
+                term_response = term_future.result()
+
+                # Check for errors in the responses
+                subj_response.raise_for_status()
+                term_response.raise_for_status()
+
+                # Parse the JSON data from the responses
+                subjJsonData = subj_response.json()
+                termJsonData = term_response.json()
+
+                # Store the retrieved data for the week
+                weekly_subject = subjJsonData
+                weekly_term = termJsonData
+
+        except requests.exceptions.RequestException as e:
+            print("Request failed:", e)
+            subjJsonData = None
+            termJsonData = None
+
+        except ValueError as e:
+            print("Invalid JSON response:", e)
+            subjJsonData = None
+            termJsonData = None
+
+    else:
+        subjJsonData = weekly_subject
+        termJsonData = weekly_term
+
+    return subjJsonData, termJsonData
+
+
 
 def is_token_valid():
 
@@ -61,11 +111,10 @@ def is_token_valid():
         return True
     else:
         return False
-    
+
 
 
 def get_access_token():
-    global last_token_generation_time
     global access_token
 
     if is_token_valid():
