@@ -46,13 +46,13 @@
     {% if cart_classes %}
         <div class="row">
             <!-- List those classes individually -->
-            {% for product in cart_classes %}
+            {% for class in cart_classes %}
                 <div class="col-md-6 mx-auto mb-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">{{ product.TITLE }}</h5>
-                            <p class="card-text">CRN: {{ product.CRN }}</p>
-                            <button type="button" data-index="{{ product.CRN }}" class="btn btn-danger delete-product">Remove</button>
+                            <strong>Title:</strong> {{ class.title }}<br>
+                            <strong>CRN:</strong> {{ class.crn }}<br>
+                            <button type="button" data-index="{{ class.CRN }}" class="btn btn-danger delete-class">Remove</button>
                         </div>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
 <script>
     // SCRIPT FOR CART DELETE
     // Check if the delete-product in shopping cart is pressed
-    $(document).on('click', '.delete-product', function(e){
+    $(document).on('click', '.delete-class', function(e){
         e.preventDefault();
     
         // send the data stored in that button to cart_delete_view

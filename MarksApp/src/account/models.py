@@ -66,14 +66,22 @@ class Account(AbstractBaseUser):
         return True
     
 class WatchedClass(models.Model):
-    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    # because I assigned this relationship,
+    # i can now access, subject, term, and crn which are held
+    # temporarily within account
+    account = models.ForeignKey(
+        Account, related_name="watchedclasses",
+        on_delete=models.DO_NOTHING
+        )
+    
     crn = models.IntegerField(default=0)
     url = models.CharField(max_length=100, default='DefaultTerm')
     title = models.CharField(max_length=100, default='DefaultTerm')
 
-    #need these two to even make the url
-    subject = models.CharField(max_length=5, default='DefaultSubject')
-    term = models.CharField(max_length=10, default='DefaultTerm')
 
     def __str__(self):
-        return f"Class for {self.account.email}: {self.crn}"
+        return(
+            f"{self.title} "
+            f"{self.crn} "
+            f"{self.url} "
+            )

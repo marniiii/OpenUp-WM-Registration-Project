@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.contrib.auth import login, authenticate, logout
 from account.forms import RegistrationForm, AccountAuthenticationForm, AccountUpdateForm
 from .cart import Cart
+from .models import WatchedClass
 
 #using tasks and celery here to getJsonData
 from mysite import tasks
@@ -174,31 +175,65 @@ def account_view(request):
 
 
 def cart_summary_view(request):
-    #get the cart
-    cart = Cart(request)
-    cart_classes = cart.get_classes()
+    user = request.user
+    if user.is_authenticated:
+        cart_classes = WatchedClass.objects.filter(account=user)
+
+    print(cart_classes)
+    
     return render(request, "account/cart_summary.html", {"cart_classes":cart_classes})
+
+    #get the cart
+    # cart = Cart(request)
+    # cart_classes = cart.get_classes()
+    # return render(request, "account/cart_summary.html", {"cart_classes":cart_classes})
 
 
 def cart_add_view(request):
-    # get the cart
-    cart = Cart(request)
+    # # get the cart
+    # cart = Cart(request)
+    # # test for post
+    # if request.POST.get('action') == 'post':
+    #     # get stuff we need 
+    #     courseURL = str(request.POST.get('courseURL'))
+    #     CRN = str(request.POST.get('CRN'))
+    #     TITLE = str(request.POST.get('TITLE'))
+
+    #     # save to session
+    #     cart.add(url=courseURL, CRN=CRN, title=TITLE)
+
+    #     cart_quantity = cart.__len__()
+
+    #     # return response
+    #     # response = JsonResponse({'Course URL: ': courseURL, 'CRN: ': CRN})
+    #     response = JsonResponse({'qty': cart_quantity})
+    #     return response   
+
     # test for post
     if request.POST.get('action') == 'post':
         # get stuff we need 
         courseURL = str(request.POST.get('courseURL'))
         CRN = str(request.POST.get('CRN'))
         TITLE = str(request.POST.get('TITLE'))
+        user = request.user
 
-        # save to session
-        cart.add(url=courseURL, CRN=CRN, title=TITLE)
 
-        cart_quantity = cart.__len__()
+        # Check if a WatchedClass object with the given CRN already exists
+        existing_watched_class = WatchedClass.objects.filter(crn=CRN, account=user).first()
+        if existing_watched_class:
+            # Return an error message if a WatchedClass with the same CRN exists
+            return JsonResponse({'success': False, 'message': 'A watched class with the same CRN already exists.'}, status=400)
+    
+    # If no existing WatchedClass with the same CRN, create a new one
+        watched_class = WatchedClass.objects.create(
+            crn=CRN,
+            url=courseURL,
+            title=TITLE,
+            account=user
+        )
 
         # return response
-        # response = JsonResponse({'Course URL: ': courseURL, 'CRN: ': CRN})
-        response = JsonResponse({'qty': cart_quantity})
-        return response   
+        return JsonResponse({'success': True})
 
 
 def cart_delete_view(request):
