@@ -40,10 +40,10 @@ Follow these steps to set up the project locally:
 
 ### Steps
 
-1. Clone the repository:
+1. Clone the repository and move to appropriate folder:
    ```bash
    git clone https://github.com/marniiii/OpenUp-WM-Registration-Project.git
-   cd OpenUp-WM-Registration-Project
+   cd OpenUp-WM-Registration-Project/MarksApp/src/
 2. Create and activate a virtual environment
     ```bash
     python -m venv venv
@@ -55,7 +55,11 @@ Follow these steps to set up the project locally:
 4. Set up the database:
     ```bash
     python manage.py migrate
-
+5. Open a new terminal and run celery worker:
+   ```bash
+   cd OpenUp-WM-Registration-Project/MarksApp/src
+   source venv/bin/activate
+   celery -A mysite worker --loglevel=info
 5. Run the development server:
     ```bash
     python manage.py runserver
