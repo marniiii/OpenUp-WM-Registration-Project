@@ -124,7 +124,7 @@ def account_view(request):
     #  also make it so that only terms with add drop active are displayed
     for entry in terms:
         # if user selects summer, fall, or spring, see if that's something that the api returns
-        if term_from_post in entry['TERM_DESC']:
+        if str(term_from_post) in entry['TERM_DESC']:
             # if so, set term_from_post = to the numerical value of that term
             term_from_post = entry['TERM_CODE']
             break
