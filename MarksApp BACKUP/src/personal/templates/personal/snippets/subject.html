@@ -1,5 +1,0 @@
-<select name="subject" id="inputSubject" class="form-control" required autofocus size="1">
-    {% for subject_option in subjects %}
-        <option value="{{ subject_option }}" {% if account_form.initial.subject == subject_option %}selected{% endif %}>{{ subject_option }}</option>
-    {% endfor %}
-</select>

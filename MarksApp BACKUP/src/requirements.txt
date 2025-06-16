@@ -1,2 +1,0 @@
-django-cas-ng==5.0.1
-django-cas-ng==5.0.1
