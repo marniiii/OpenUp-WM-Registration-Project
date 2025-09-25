@@ -84,17 +84,17 @@ def account_view(request):
     term_url = "https://openapi.it.wm.edu/courses/production/v1/activeterms"
 
     # call the function and set subjects and term = to the celery task response
-    subjects, terms = tasks.get_subject_and_term.delay(subject_url, term_url).get()
+    # subjects, terms = tasks.get_subject_and_term.delay(subject_url, term_url).get()
 
     subject_list = []
-    for entry in subjects:
-        # Use .get() method to access the 'STVSUBJ_CODE' key with a default value of None
-        subject_code = entry.get('STVSUBJ_CODE')
-        if subject_code is not None:
-            subject_list.append(subject_code)
+    # for entry in subjects:
+    #     # Use .get() method to access the 'STVSUBJ_CODE' key with a default value of None
+    #     subject_code = entry.get('STVSUBJ_CODE')
+    #     if subject_code is not None:
+    #         subject_list.append(subject_code)
 
-        # this is how we get the sorted subjects for the dropdown menu
-        subject_list.sort()
+    #     # this is how we get the sorted subjects for the dropdown menu
+    #     subject_list.sort()
 
 
     # if get a post request from account searching for a class
@@ -122,55 +122,55 @@ def account_view(request):
 
 
     #  also make it so that only terms with add drop active are displayed
-    for entry in terms:
-        # if user selects summer, fall, or spring, see if that's something that the api returns
-        if str(term_from_post) in entry['TERM_DESC']:
-            # if so, set term_from_post = to the numerical value of that term
-            term_from_post = entry['TERM_CODE']
-            break
-        # otherwise just set it to 0 so that the failure msg will pop up
-        else:
-            term_from_post = 0
+    # for entry in terms:
+    #     # if user selects summer, fall, or spring, see if that's something that the api returns
+    #     if str(term_from_post) in entry['TERM_DESC']:
+    #         # if so, set term_from_post = to the numerical value of that term
+    #         term_from_post = entry['TERM_CODE']
+    #         break
+    #     # otherwise just set it to 0 so that the failure msg will pop up
+    #     else:
+    #         term_from_post = 0
 
 
     # set the tasks.url to the url used to grab class jsonData
-    classes_url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
+    # classes_url = "https://openapi.it.wm.edu/courses/production/v1/opencourses/" + str(subject_from_post) + "/" + str(term_from_post)
 
-    #grab the jsonData using tasks and celery
-    classesJsonData = tasks.get_classes.delay(classes_url).get()
+    # #grab the jsonData using tasks and celery
+    # classesJsonData = tasks.get_classes.delay(classes_url).get()
     
 
-    try:
-        # Check if jsonData is not None and it is not empty
-        if classesJsonData and len(classesJsonData) > 0:
-            # Use a regular expression pattern to clean seats available data
-            pattern = r'-?\d+(?=\*)?'
-            # for every entry in that huge jsonData
-            for entry in classesJsonData:
-                # if we find a match regarding CRN
-                if entry['CRN_ID'] == crn_from_post:
-                    form.save()
-                    context['success_msg'] = "Found your class! If correct, click 'Add to Cart' or search for another class!"
-                    break
-            else:
-                # This msg is for when the class cannot be found in jsonData
-                context['failure_msg'] = failure_msg
-        else:
-            # Handle case where jsonData is None or empty
-            context['failure_msg'] = failure_msg
-    except Exception as e:
-        # Handle any other exceptions that might occur
-        context['failure_msg'] = "An error occurred while processing your request: {}".format(str(e))
+    # try:
+    #     # Check if jsonData is not None and it is not empty
+    #     if classesJsonData and len(classesJsonData) > 0:
+    #         # Use a regular expression pattern to clean seats available data
+    #         pattern = r'-?\d+(?=\*)?'
+    #         # for every entry in that huge jsonData
+    #         for entry in classesJsonData:
+    #             # if we find a match regarding CRN
+    #             if entry['CRN_ID'] == crn_from_post:
+    #                 form.save()
+    #                 context['success_msg'] = "Found your class! If correct, click 'Add to Cart' or search for another class!"
+    #                 break
+    #         else:
+    #             # This msg is for when the class cannot be found in jsonData
+    #             context['failure_msg'] = failure_msg
+    #     else:
+    #         # Handle case where jsonData is None or empty
+    #         context['failure_msg'] = failure_msg
+    # except Exception as e:
+    #     # Handle any other exceptions that might occur
+    #     context['failure_msg'] = "An error occurred while processing your request: {}".format(str(e))
 
-    # then we want to send the form, subjects, jsonData, url, and the crn to account.html so that it can use it or display it
-    context.update({
-        'account_form': form,
-        'subjects': subject_list,
-        'jsonData': classesJsonData,
-        'courseURL': classes_url,
-        'CRN': crn_from_post,
-    })
-    # this sends that info there
+    # # then we want to send the form, subjects, jsonData, url, and the crn to account.html so that it can use it or display it
+    # context.update({
+    #     'account_form': form,
+    #     'subjects': subject_list,
+    #     'jsonData': classesJsonData,
+    #     'courseURL': classes_url,
+    #     'CRN': crn_from_post,
+    # })
+    # # this sends that info there
     return render(request, 'account/account.html', context)
 
 
