@@ -1,0 +1,8 @@
+services:
+  - type: web
+    plan: free
+    name: OpenUp
+    runtime: python
+    rootDir: MarksApp/src
+    buildCommand: 'pip install -r requirements.txt'
+    startCommand: 'python -m gunicorn mysite.asgi:application -k uvicorn.workers.UvicornWorker'
