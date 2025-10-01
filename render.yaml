@@ -4,5 +4,8 @@ services:
     name: OpenUp
     runtime: python
     rootDir: MarksApp/src
-    buildCommand: 'pip install -r requirements.txt'
+    buildCommand: |
+  	pip install --upgrade pip setuptools wheel
+  	pip install -r requirements.txt
+
     startCommand: 'python -m gunicorn mysite.asgi:application -k uvicorn.workers.UvicornWorker'
