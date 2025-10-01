@@ -33,7 +33,7 @@ EMAIL_HOST = 'smtp-mail.outlook.com'
 EMAIL_HOST_USER = "m.marni@hotmail.com"
 EMAIL_HOST_PASSWORD = "rksbddemitothcpv"
 
-ALLOWED_HOSTS = [openup-npzk.onrender.com]
+ALLOWED_HOSTS = ['openup-npzk.onrender.com']
 
 # Application definition
 
